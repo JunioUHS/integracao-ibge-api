@@ -15,13 +15,10 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
-});
-
-Route::group([
-    'prefix' => '/integracao'
-], function () {
-    Route::get('/', [IntegracaoIbgeController::class, 'index']);
-    // Route::get('/', 'IntegracaoIbgeController@index');
+Route::prefix('v1')->group(function () {
+    Route::prefix('ibge')->group(function () {
+        Route::get('cidades', [IntegracaoIbgeController::class, 'getCitiesByState']);
+        Route::get('populacao/{locationId}/{year}', [IntegracaoIbgeController::class, 'getPopulation'])
+            ->where(['locationId' => '[0-9]+', 'year' => '[0-9]{4}']);
+    });
 });
