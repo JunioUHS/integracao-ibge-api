@@ -35,22 +35,13 @@ git clone <repository-url>
 cd integracao-ibge-api
 ```
 
-2. **Execute com Docker (Desenvolvimento)**
+2. **Execute com Docker**
 
 ```bash
 # Modo desenvolvimento (com hot reload)
-docker-compose -f docker-compose.dev.yml up -d
-
-# Acesse: http://localhost:8000
-```
-
-3. **Execute com Docker + Nginx (Produção)**
-
-```bash
-# Modo produção com Nginx
 docker-compose up -d
 
-# Acesse: http://localhost:8080
+# Acesse: http://localhost:8000
 ```
 
 ### Comandos Docker Úteis
