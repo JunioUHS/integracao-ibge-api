@@ -2,30 +2,74 @@
 
 namespace App\Repositories;
 
-use App\Services\Rest\RestService;
+use App\Services\Rest\HttpService;
+use Illuminate\Http\Client\RequestException;
+use Illuminate\Support\Facades\Log;
 
 class IbgeRepository
 {
-    private RestService $restService;
+    private HttpService $httpService;
     private string $baseUrl;
 
-    public function __construct(RestService $restService)
+    public function __construct(HttpService $httpService)
     {
-        $this->restService = $restService;
-        $this->baseUrl = env('API_IBGE_SERVER', 'https://servicodados.ibge.gov.br/api');
+        $this->httpService = $httpService;
+        $this->baseUrl = env('IBGE_API_URL', 'https://servicodados.ibge.gov.br/api');
     }
 
     public function getCitiesByState(string $uf): array
     {
-        $url = "{$this->baseUrl}/v1/localidades/estados/{$uf}/distritos";
-        return $this->restService->get($url);
+        try {
+            $url = "{$this->baseUrl}/v1/localidades/estados/{$uf}/distritos";
+            
+            Log::info('Buscando cidades do IBGE', [
+                'uf' => $uf,
+                'url' => $url
+            ]);
+
+            return $this->httpService->get($url);
+
+        } catch (RequestException $e) {
+            Log::error('Erro ao buscar cidades do IBGE', [
+                'uf' => $uf,
+                'status' => $e->response?->status(),
+                'message' => $e->getMessage()
+            ]);
+
+            throw new \App\Exceptions\IbgeIntegrationException(
+                "Erro ao buscar cidades para o estado {$uf}: " . $e->getMessage(),
+                previous: $e
+            );
+        }
     }
 
     public function getPopulationByYear(int $year, string $locationId): array
     {
-        $url = "{$this->baseUrl}/v3/agregados/6579/periodos/{$year}/variaveis/9324";
-        return $this->restService->get($url, [
-            'localidades' => "N6[{$locationId}]"
-        ]);
+        try {
+            $url = "{$this->baseUrl}/v3/agregados/6579/periodos/{$year}/variaveis/9324";
+            
+            Log::info('Buscando população do IBGE', [
+                'year' => $year,
+                'locationId' => $locationId,
+                'url' => $url
+            ]);
+
+            return $this->httpService->get($url, [
+                'localidades' => "N6[{$locationId}]"
+            ]);
+
+        } catch (RequestException $e) {
+            Log::error('Erro ao buscar população do IBGE', [
+                'year' => $year,
+                'locationId' => $locationId,
+                'status' => $e->response?->status(),
+                'message' => $e->getMessage()
+            ]);
+
+            throw new \App\Exceptions\IbgeIntegrationException(
+                "Erro ao buscar população para localidade {$locationId} no ano {$year}: " . $e->getMessage(),
+                previous: $e
+            );
+        }
     }
 }
