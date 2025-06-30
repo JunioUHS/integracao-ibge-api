@@ -2,8 +2,8 @@
 
 namespace App\Providers;
 
-use Illuminate\Contracts\Routing\ResponseFactory;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Response;
 
 class ResponseProvider extends ServiceProvider
 {
@@ -22,23 +22,22 @@ class ResponseProvider extends ServiceProvider
      *
      * @return void
      */
-    public function boot(ResponseFactory $factory)
+    public function boot()
     {
         /**
          * @param array|object $data
          * @param int $status
          * @param string $message
-         * @return \Illuminate\Http\Response
+         * @return \Illuminate\Http\JsonResponse
          */
-        $factory->macro(
-            'jsonResponse', function ($data = [],  int $status = 200) use ($factory) {
-
+        Response::macro('jsonResponse', function ($data = [], int $status = 200, string $message = '') {
             $customFormat = [
                 'status' => $status,
-                'message' => '',
+                'message' => $message,
                 'body' => $data
             ];
-            return $factory->make($customFormat, $status);
+            
+            return response()->json($customFormat, $status);
         });
     }
 }
