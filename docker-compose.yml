@@ -1,0 +1,33 @@
+version: "3.8"
+
+services:
+    app:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        container_name: ibge-api
+        restart: unless-stopped
+        working_dir: /var/www/html
+        ports:
+            - "8000:8000"
+        volumes:
+            - ./:/var/www/html
+            - ./storage/logs:/var/www/html/storage/logs
+            - ./bootstrap/cache:/var/www/html/bootstrap/cache
+        environment:
+            - APP_ENV=local
+            - APP_DEBUG=true
+            - APP_KEY=${APP_KEY:-}
+            - APP_URL=http://localhost:8000
+            - IBGE_API_URL=https://servicodados.ibge.gov.br/api
+            - IBGE_TIMEOUT=30
+            - IBGE_RETRIES=2
+            - CACHE_DRIVER=file
+            - LOG_CHANNEL=stack
+            - LOG_LEVEL=debug
+        networks:
+            - ibge-network
+
+networks:
+    ibge-network:
+        driver: bridge
